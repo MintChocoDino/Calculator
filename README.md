@@ -3,11 +3,13 @@
 A small Windows desktop calculator for basic arithmetic — built with Python 3.13 and tkinter,
 packaged as a standalone `.exe` with PyInstaller and an installer with Inno Setup.
 
-**[Download the installer →](https://github.com/MintChocoDino/Calculator/releases/latest)**
+**[Download the installer →](https://mintchocodino.github.io/Calculator/)**
+&nbsp;·&nbsp;
+**[All releases →](https://github.com/MintChocoDino/Calculator/releases)**
 
-The project page lives in this repo as `index.html` — open it in a browser to
-see the download page and a live in-browser preview of the calculator. It is not
-published anywhere; this repository is private.
+The project page (`index.html` in this repo) is published with GitHub Pages at
+**<https://mintchocodino.github.io/Calculator/>** — it has the downloads, the
+checksums, and a live in-browser preview of the calculator.
 
 <p align="center">
   <img src="assets/calculator.png" width="120" alt="Sandbox Calculator icon">
@@ -72,7 +74,5 @@ per-user and never triggers an administrator prompt.
 
 The released binaries are **not code-signed**, so Windows SmartScreen will warn on
 first run — choose *More info → Run anyway*. SHA-256 checksums for each build are
-listed in `index.html` and in the release notes.
-
-Because this repository is private, the release download links only work while
-signed in to GitHub as a user with access.
+listed on the [project page](https://mintchocodino.github.io/Calculator/) and in
+the release notes, so the download can be verified with `Get-FileHash` before running.
