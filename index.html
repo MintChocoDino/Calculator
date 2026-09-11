@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sandbox Calculator</title>
+<style>
+  :root{
+    --bg:#0f1115;
+    --bg-raised:#16181d;
+    --panel:#1b1e25;
+    --key:#262a33;
+    --key-hover:#323742;
+    --func:#343945;
+    --func-hover:#414755;
+    --op-bg:#33291d;
+    --op-hover:#443524;
+    --accent:#f0a04b;
+    --accent-hover:#f5b370;
+    --fg:#e8eaed;
+    --muted:#8b93a3;
+    --line:#272b34;
+    --radius:14px;
+    --font:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    --mono:"Cascadia Code",ui-monospace,SFMono-Regular,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--fg);
+    font-family:var(--font);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding-inline:20px}
+
+  /* ---------- header ---------- */
+  header{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(15,17,21,.86);backdrop-filter:blur(10px);z-index:10}
+  .bar{display:flex;align-items:center;gap:12px;padding-block:14px}
+  .bar img{width:28px;height:28px;border-radius:7px}
+  .bar strong{font-size:15px;font-weight:600;letter-spacing:.2px}
+  .bar .ver{color:var(--muted);font-size:13px;font-family:var(--mono)}
+  .bar nav{margin-left:auto;display:flex;gap:22px}
+  .bar nav a{color:var(--muted);text-decoration:none;font-size:14px}
+  .bar nav a:hover{color:var(--fg)}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .hero::before{
+    content:"";position:absolute;inset:-40% 20% auto 20%;height:420px;
+    background:radial-gradient(ellipse at 50% 0%,rgba(240,160,75,.16),transparent 68%);
+    pointer-events:none;
+  }
+  .hero-inner{
+    position:relative;display:grid;grid-template-columns:1.15fr .85fr;gap:56px;
+    align-items:center;padding-block:76px 84px;
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;font-size:12.5px;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--accent);border:1px solid rgba(240,160,75,.3);
+    background:rgba(240,160,75,.07);padding:5px 12px;border-radius:999px;margin-bottom:22px;
+  }
+  h1{font-size:clamp(2.1rem,5.2vw,3.3rem);line-height:1.1;margin:0 0 18px;letter-spacing:-.02em;font-weight:700}
+  h1 em{font-style:normal;color:var(--accent)}
+  .lede{font-size:clamp(1rem,2.1vw,1.14rem);color:var(--muted);margin:0 0 32px;max-width:46ch}
+
+  .cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .btn{
+    display:inline-flex;align-items:center;gap:11px;padding:14px 26px;border-radius:11px;
+    font-size:15.5px;font-weight:600;text-decoration:none;border:1px solid transparent;
+    transition:background .15s ease,border-color .15s ease,transform .15s ease;
+  }
+  .btn-primary{background:var(--accent);color:#1b1400;box-shadow:0 8px 26px -12px rgba(240,160,75,.85)}
+  .btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+  .btn-ghost{border-color:var(--line);color:var(--fg);background:var(--bg-raised)}
+  .btn-ghost:hover{border-color:#3c4250;background:var(--panel)}
+  .btn svg{flex:none}
+  .meta{font-size:13.5px;color:var(--muted);margin-top:16px}
+  .meta code{font-family:var(--mono);color:#aab2c0}
+
+  /* ---------- app mock ---------- */
+  .app{
+    width:100%;max-width:330px;margin-inline:auto;background:var(--bg-raised);
+    border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.9);
+  }
+  .titlebar{display:flex;align-items:center;gap:8px;padding:10px 13px;background:#12141a;border-bottom:1px solid var(--line)}
+  .dot{width:10px;height:10px;border-radius:50%;background:#2f3440}
+  .titlebar span{margin-left:6px;font-size:12.5px;color:var(--muted)}
+  .screen{background:#0f1115;margin:12px;border-radius:9px;padding:12px 14px;text-align:right}
+  .screen .hist{font-size:12.5px;color:var(--muted);min-height:19px;font-variant-numeric:tabular-nums}
+  .screen .val{font-size:30px;font-weight:700;letter-spacing:-.01em;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+  .keys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 12px 14px}
+  .keys button{
+    font-family:inherit;font-size:15px;color:var(--fg);background:var(--key);
+    border:0;border-radius:9px;padding:14px 0;cursor:pointer;transition:background .12s ease;
+  }
+  .keys button:hover{background:var(--key-hover)}
+  .keys .fn{background:var(--func)}
+  .keys .fn:hover{background:var(--func-hover)}
+  .keys .op{background:var(--op-bg);color:var(--accent)}
+  .keys .op:hover{background:var(--op-hover)}
+  .keys .eq{background:var(--accent);color:#1b1400;font-weight:700}
+  .keys .eq:hover{background:var(--accent-hover)}
+  .try{text-align:center;font-size:12.5px;color:var(--muted);margin-top:14px}
+
+  /* ---------- sections ---------- */
+  section{padding-block:72px;border-bottom:1px solid var(--line)}
+  h2{font-size:1.55rem;margin:0 0 8px;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin:0 0 38px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+  .card{background:var(--bg-raised);border:1px solid var(--line);border-radius:var(--radius);padding:24px}
+  .card h3{margin:0 0 8px;font-size:1rem;font-weight:600}
+  .card p{margin:0;color:var(--muted);font-size:14.5px}
+  .card .ico{
+    width:36px;height:36px;border-radius:9px;background:rgba(240,160,75,.1);
+    color:var(--accent);display:grid;place-items:center;margin-bottom:15px;font-size:17px;
+  }
+
+  /* ---------- download ---------- */
+  .dl{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+  .facts{width:100%;border-collapse:collapse;font-size:14.5px}
+  .facts th,.facts td{text-align:left;padding:11px 0;border-bottom:1px solid var(--line);vertical-align:top}
+  .facts th{color:var(--muted);font-weight:400;width:38%}
+  .facts td{font-family:var(--mono);font-size:13px;overflow-wrap:anywhere}
+  .note{
+    background:rgba(240,160,75,.06);border:1px solid rgba(240,160,75,.22);
+    border-radius:11px;padding:17px 19px;font-size:14px;color:#d8c3a7;margin-top:22px;
+  }
+  .note strong{color:var(--accent)}
+  ol{padding-left:20px;color:var(--muted);font-size:14.5px;margin:0}
+  ol li{margin-bottom:9px}
+  kbd{
+    font-family:var(--mono);font-size:12px;background:var(--key);border:1px solid var(--line);
+    border-bottom-width:2px;border-radius:5px;padding:2px 6px;color:var(--fg);
+  }
+  footer{padding-block:34px;color:var(--muted);font-size:13.5px;display:flex;flex-wrap:wrap;gap:10px 20px}
+  footer span{margin-left:auto}
+
+  @media (max-width:860px){
+    .hero-inner{grid-template-columns:1fr;gap:46px;padding-block:56px 64px}
+    .dl{grid-template-columns:1fr}
+    .bar nav{display:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <img src="assets/calculator.png" alt="">
+    <strong>Sandbox Calculator</strong>
+    <span class="ver">v1.0.0</span>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#download">Download</a>
+      <a href="#install">Install</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap hero-inner">
+    <div>
+      <div class="eyebrow">Windows desktop app</div>
+      <h1>Arithmetic, <em>nothing else.</em></h1>
+      <p class="lede">
+        A small, fast calculator that does the four operations and gets out of your way.
+        No ads, no account, no telemetry &mdash; just a window that adds up.
+      </p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://github.com/MintChocoDino/Calculator/releases/download/v1.0.0/SandboxCalculator-1.0.0-Setup.exe">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/></svg>
+          Download installer
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/MintChocoDino/Calculator/releases/download/v1.0.0/SandboxCalculator.exe">Portable .exe</a>
+      </div>
+      <p class="meta">Windows 10 / 11 &middot; 64-bit &middot; <code>11.6 MB</code> &middot; installs without admin rights</p>
+    </div>
+
+    <div>
+      <div class="app">
+        <div class="titlebar">
+          <i class="dot"></i><i class="dot"></i><i class="dot"></i>
+          <span>Sandbox Calculator</span>
+        </div>
+        <div class="screen">
+          <div class="hist" id="hist"></div>
+          <div class="val" id="val">0</div>
+        </div>
+        <div class="keys" id="keys">
+          <button class="fn" data-k="C">C</button>
+          <button class="fn" data-k="back">&#9003;</button>
+          <button class="fn" data-k="pct">%</button>
+          <button class="op" data-k="/">&divide;</button>
+          <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+          <button class="op" data-k="*">&times;</button>
+          <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+          <button class="op" data-k="-">&minus;</button>
+          <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+          <button class="op" data-k="+">+</button>
+          <button class="fn" data-k="neg">&plusmn;</button>
+          <button data-k="0">0</button><button data-k=".">.</button>
+          <button class="eq" data-k="=">=</button>
+        </div>
+      </div>
+      <p class="try">Live preview &mdash; try it, it runs the same logic as the app.</p>
+    </div>
+  </div>
+</div>
+
+<section id="features">
+  <div class="wrap">
+    <h2>What it does</h2>
+    <p class="sub">Deliberately small. These are all of the features.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="ico">&plus;&minus;</div>
+        <h3>The four operations</h3>
+        <p>Add, subtract, multiply and divide, evaluated left to right, with percent and sign toggle.</p>
+      </div>
+      <div class="card">
+        <div class="ico">&#9000;</div>
+        <h3>Full keyboard control</h3>
+        <p>Number row, operators, <kbd>Enter</kbd> to equal, <kbd>Backspace</kbd> to delete, <kbd>Esc</kbd> to clear.</p>
+      </div>
+      <div class="card">
+        <div class="ico">&#8690;</div>
+        <h3>Resizes properly</h3>
+        <p>Drag it to any size you like. The keypad scales with the window instead of clipping.</p>
+      </div>
+      <div class="card">
+        <div class="ico">0</div>
+        <h3>Honest numbers</h3>
+        <p>0.1 + 0.2 shows 0.3, not floating-point noise. Division by zero says so plainly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <h2>Download</h2>
+    <p class="sub">Two ways to run it &mdash; installed, or straight from the file.</p>
+    <div class="dl">
+      <div>
+        <table class="facts">
+          <tr><th>Installer</th><td>SandboxCalculator-1.0.0-Setup.exe</td></tr>
+          <tr><th>Size</th><td>11.55 MB</td></tr>
+          <tr><th>SHA-256</th><td>c4ee98bbf85d60c0a4b2dc4b03bfbcbaa8c06e843d72bcab48bf62482f004a22</td></tr>
+          <tr><th>Requires</th><td>Windows 10 or 11, x64</td></tr>
+        </table>
+        <div class="note">
+          <strong>Heads up:</strong> the installer is not code-signed, so Windows SmartScreen
+          will show &ldquo;Windows protected your PC.&rdquo; Choose <em>More info &rarr; Run anyway</em>,
+          or verify the SHA-256 above first with
+          <code>Get-FileHash</code>.
+        </div>
+      </div>
+      <div>
+        <table class="facts">
+          <tr><th>Portable build</th><td>SandboxCalculator.exe</td></tr>
+          <tr><th>Size</th><td>9.85 MB</td></tr>
+          <tr><th>SHA-256</th><td>1a3c4ac9896787d661ef4bed8f9aeb1b9988d213643df9b19dd2caf1d43b4f6b</td></tr>
+          <tr><th>Install needed</th><td>None &mdash; double-click and it runs</td></tr>
+        </table>
+        <div class="note">
+          <strong>No Python required.</strong> Both builds bundle their own runtime,
+          so nothing needs to be installed on the target machine.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <h2>Installing</h2>
+    <p class="sub">Per-user install. It never asks for an administrator prompt.</p>
+    <ol>
+      <li>Run <strong>SandboxCalculator-1.0.0-Setup.exe</strong>.</li>
+      <li>Pick a folder, and optionally tick <em>Create a desktop shortcut</em>.</li>
+      <li>Finish &mdash; the app lands in your Start Menu as <strong>Sandbox Calculator</strong>.</li>
+      <li>To remove it later: Settings &rarr; Apps, or the bundled <code>unins000.exe</code>.</li>
+    </ol>
+  </div>
+</section>
+
+<div class="wrap">
+  <footer>
+    <div>Sandbox Calculator 1.0.0 &middot; built with Python 3.13 &amp; tkinter</div>
+    <span>Packaged with PyInstaller &amp; Inno Setup</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var current = "0", stored = null, op = null, fresh = true, error = false;
+  var valEl = document.getElementById("val"), histEl = document.getElementById("hist");
+
+  function fmt(v) {
+    if (!isFinite(v)) return "Error";
+    if (Number.isInteger(v) && Math.abs(v) < 1e16) return String(v);
+    var s = v.toPrecision(12);
+    if (s.indexOf("e") === -1) s = s.replace(/0+$/, "").replace(/\.$/, "");
+    return String(parseFloat(s));
+  }
+  function render() {
+    valEl.textContent = current;
+    var sym = { "+": "+", "-": "−", "*": "×", "/": "÷" };
+    histEl.textContent = (op && stored !== null) ? fmt(stored) + " " + sym[op] : "";
+  }
+  function fail(msg) { current = msg; stored = null; op = null; fresh = true; error = true; render(); }
+  function clearError() { if (error) clearAll(); }
+  function clearAll() { current = "0"; stored = null; op = null; fresh = true; error = false; render(); }
+
+  function digit(d) {
+    clearError();
+    if (fresh) { current = "0"; fresh = false; }
+    current = (current === "0") ? d : current + d;
+    render();
+  }
+  function dot() {
+    clearError();
+    if (fresh) { current = "0"; fresh = false; }
+    if (current.indexOf(".") === -1) current += ".";
+    render();
+  }
+  function apply() {
+    var a = stored, b = parseFloat(current);
+    if (op === "/" && b === 0) { fail("Cannot divide by zero"); return false; }
+    var r = op === "+" ? a + b : op === "-" ? a - b : op === "*" ? a * b : a / b;
+    if (!isFinite(r)) { fail("Result too large"); return false; }
+    current = fmt(r); stored = r; return true;
+  }
+  function setOp(o) {
+    clearError();
+    if (op !== null && !fresh) { if (!apply()) return; }
+    else stored = parseFloat(current);
+    op = o; fresh = true; render();
+  }
+  function equals() {
+    clearError();
+    if (op === null) return;
+    if (!apply()) return;
+    stored = null; op = null; fresh = true; render();
+  }
+
+  var actions = {
+    "C": clearAll,
+    "=": equals,
+    ".": dot,
+    "back": function () {
+      clearError(); if (fresh) return;
+      current = current.slice(0, -1) || "0";
+      if (current === "-") current = "0";
+      render();
+    },
+    "neg": function () {
+      clearError();
+      if (current.charAt(0) === "-") current = current.slice(1);
+      else if (current !== "0") current = "-" + current;
+      render();
+    },
+    "pct": function () { clearError(); current = fmt(parseFloat(current) / 100); fresh = false; render(); }
+  };
+
+  function press(k) {
+    if (/^[0-9]$/.test(k)) digit(k);
+    else if ("+-*/".indexOf(k) !== -1 && k.length === 1) setOp(k);
+    else if (actions[k]) actions[k]();
+  }
+
+  document.getElementById("keys").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (b) press(b.dataset.k);
+  });
+
+  document.addEventListener("keydown", function (e) {
+    var k = e.key;
+    if (/^[0-9]$/.test(k) || "+-*/".indexOf(k) !== -1 && k.length === 1) press(k);
+    else if (k === "." || k === ",") press(".");
+    else if (k === "Enter" || k === "=") { e.preventDefault(); press("="); }
+    else if (k === "Backspace") press("back");
+    else if (k === "Escape") press("C");
+    else if (k === "%") press("pct");
+    else return;
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
