@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Build output (binaries are published as GitHub Release assets, not committed)
+dist/
+build/pyinstaller/
+build/*.spec
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+
+# Local scratch file, not part of the project
+sample.txt
